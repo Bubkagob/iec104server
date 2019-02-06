@@ -1,0 +1,3 @@
+[submodule "deps/peavy-client"]
+	path = deps/peavy-client
+	url = git@bitbucket.org:alexsteam4000/peavy-client.git
