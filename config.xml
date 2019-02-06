@@ -20,11 +20,8 @@
         <Timeouts echo="30" operation="5" reconnect="30"></Timeouts>
     </Connection>
 </Vclient>
-
   <Session T0="10" T1="15" T2="10" T3="20" W="8" K="12" TransmCauseSize="2">
-
     <Connection IpAddr="0.0.0.0" TcpPort="2404">
-
       <Slave StationAddr="1">
           <MSP Name="test.bit.b1"  Groupe="1"  ObjectAddr="150"    Format="NA"></MSP>
           <MSP Name="test.bit.b2"  Groupe="1"  ObjectAddr="151"    Format="NA"></MSP>
@@ -51,11 +48,7 @@
           <MME Name="test.f3.r18"  Groupe="2"  ObjectAddr="128"    Format="NC"></MME>
           <MME Name="test.f3.r19"  Groupe="2"  ObjectAddr="129"    Format="NC"></MME>
           <MME Name="test.f3.r20"  Groupe="2"  ObjectAddr="130"    Format="NC"></MME>
-
       </Slave>
-
     </Connection>
-
   </Session>
-
 </root>

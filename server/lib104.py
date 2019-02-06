@@ -517,6 +517,11 @@ class Server104():
         print("HERE2", self.apci_parameters[0].t1)
         print("HERE2", self.apci_parameters[0].t2)
         print("HERE2", self.apci_parameters[0].t3)
+
+        # set asdu handler
+        self.asdu_hand = asdu_handler_proto(self.asdu_handler)
+        iec60870.CS104_Slave_setASDUHandler(self.slave, self.asdu_hand, c_int())
+
         # set interrogation handler
         self.con_req_handler = connection_request_handler_proto(connection_req_handler)
         iec60870.CS104_Slave_setConnectionRequestHandler(self.slave, self.con_req_handler, c_int())
@@ -548,6 +553,15 @@ class Server104():
     def stop(self):
         print("Stop Server 104")
         iec60870.CS104_Slave_stop(self.slave)
+
+    def asdu_handler(self, parameter, connection, asdu):
+        print("ASDU HANDLER from OBJECT!")
+        if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NA_1.value:
+            print("received set point normalized value C_SE_NA_1")
+            if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
+                print("received CS101_COT_ACTIVATION")
+
+        return True
 
     def interrogation_handler(self, parameter, connection, asdu, qoi):
         print("ASDU", iec60870.CS101_ASDU_getCOT(asdu))
