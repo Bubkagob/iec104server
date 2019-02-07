@@ -63,6 +63,7 @@ class App:
             task)
         cfg.events.update = self._update
         self._client = Client(cfg)
+        self._server.vclient = self._client
         self._client.start()
 
     def _handshake(self):

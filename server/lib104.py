@@ -4,7 +4,8 @@ import time
 from enum import Enum
 from itertools import groupby
 from ctypes import util, CFUNCTYPE, POINTER, CDLL, cdll
-from ctypes import Structure, c_int, c_void_p, c_char_p, c_bool, c_uint8
+from ctypes import Structure
+from ctypes import c_float, c_int, c_void_p, c_char_p, c_bool, c_uint8
 
 
 iec60870 = CDLL('/usr/local/lib/liblib60870.so')
@@ -219,6 +220,38 @@ class CS104PeerConnectionEvent(Enum):
     CS104_CON_EVENT_DEACTIVATED = 3
 
 
+# SetpointCommandShort_getValue
+iec60870.SetpointCommandShort_getValue.argtypes = [c_void_p]
+iec60870.SetpointCommandShort_getValue.restype = c_float
+
+# SetpointCommandNormalized_getValue
+iec60870.SetpointCommandNormalized_getValue.argtypes = [c_void_p]
+iec60870.SetpointCommandNormalized_getValue.restype = c_float
+
+# CS101_ASDU_getTypeID
+iec60870.CS101_ASDU_getTypeID.argtypes = [c_void_p]
+iec60870.CS101_ASDU_getTypeID.restype = c_int
+
+# CS101_ASDU_getCOT
+iec60870.CS101_ASDU_getCOT.argtypes = [c_void_p]
+iec60870.CS101_ASDU_getCOT.restype = c_int
+
+# CS101_ASDU_setCOT
+iec60870.CS101_ASDU_setCOT.argtypes = [c_void_p, c_int]
+iec60870.CS101_ASDU_setCOT.restype = c_void_p
+
+# InformationObject_getType
+iec60870.InformationObject_getType.argtypes = [c_void_p]
+iec60870.InformationObject_getType.restype = c_int
+
+# CS101_ASDU_getNumberOfElements
+iec60870.CS101_ASDU_getNumberOfElements.argtypes = [c_void_p]
+iec60870.CS101_ASDU_getNumberOfElements.restype = c_int
+
+# CS101_ASDU_getElement
+iec60870.CS101_ASDU_getElement.argtypes = [c_void_p, c_int]
+iec60870.CS101_ASDU_getElement.restype = c_void_p
+
 # InformationObject_getObjectAddress
 iec60870.InformationObject_getObjectAddress.argtypes = [c_void_p]
 iec60870.InformationObject_getObjectAddress.restype = c_int
@@ -335,14 +368,6 @@ iec60870.CS104_Slave_setConnectionEventHandler.restype = c_void_p
 # CS104_Slave_setASDUHandler
 iec60870.CS104_Slave_setASDUHandler.argtypes = [c_void_p, c_void_p, c_int]
 iec60870.CS104_Slave_setASDUHandler.restype = c_int
-
-# CS101_ASDU_getTypeID
-iec60870.CS101_ASDU_getTypeID.argtypes = [c_void_p]
-iec60870.CS101_ASDU_getTypeID.restype = c_int
-
-# CS101_ASDU_getCOT
-iec60870.CS101_ASDU_getCOT.argtypes = [c_void_p]
-iec60870.CS101_ASDU_getCOT.restype = c_int
 
 
 # connection_request_handler proto
@@ -498,6 +523,7 @@ class Server104():
     def __init__(self, config):
         print("Init Server 104")
         self.tags = None
+        self.vclient = None
         self.slave = iec60870.CS104_Slave_create(100, 100)
         iec60870.CS104_Slave_setLocalAddress(self.slave, b"0.0.0.0")
         iec60870.CS104_Slave_setServerMode(
@@ -555,13 +581,30 @@ class Server104():
         iec60870.CS104_Slave_stop(self.slave)
 
     def asdu_handler(self, parameter, connection, asdu):
-        print("ASDU HANDLER from OBJECT!")
-        if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NA_1.value:
-            print("received set point normalized value C_SE_NA_1")
-            if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
-                print("received CS101_COT_ACTIVATION")
+        # print("asdu handler")
+        asdu_count = iec60870.CS101_ASDU_getNumberOfElements(asdu)
+        # print("Number of elements = ", asdu_count)
+        if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
+            print("received CS101_COT_ACTIVATION")
+            iec_io = iec60870.CS101_ASDU_getElement(asdu, 0)
+            io_address = iec60870.InformationObject_getObjectAddress(iec_io)
+            io_type = iec60870.InformationObject_getType(iec_io)
+            if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NA_1.value:
+                print("received set point normalized(int) value C_SE_NA_1")
+                value = iec60870.SetpointCommandNormalized_getValue(iec_io)
+                print("Value SP =", value)
+                self.vclient.set("test.f3.r10", int(value), 0)
+            if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NC_1.value:
+                print("received set point float value C_SE_NC_1")
+                value = iec60870.SetpointCommandShort_getValue(iec_io)
+                print("Value SP =", value)
 
-        return True
+            iec60870.CS101_ASDU_setCOT(
+                asdu, CS101CauseOfTransmission.CS101_COT_ACTIVATION_CON.value)
+            iec60870.InformationObject_destroy(iec_io)
+            iec60870.IMasterConnection_sendASDU(connection, asdu)
+            return True
+        return False
 
     def interrogation_handler(self, parameter, connection, asdu, qoi):
         print("ASDU", iec60870.CS101_ASDU_getCOT(asdu))
