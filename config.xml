@@ -48,6 +48,8 @@
           <MME Name="test.f3.r18"  Groupe="2"  ObjectAddr="128"    Format="NC"></MME>
           <MME Name="test.f3.r19"  Groupe="2"  ObjectAddr="129"    Format="NC"></MME>
           <MME Name="test.f3.r20"  Groupe="2"  ObjectAddr="130"    Format="NC"></MME>
+          <CSE Name="test.f3.r15"  Groupe="3"  ObjectAddr="200"    Format="NC" Operation="EXECUTE"></CSE>
+          <CSE Name="test.f3.r16"  Groupe="3"  ObjectAddr="201"    Format="NA" Operation="EXECUTE"></CSE>
       </Slave>
     </Connection>
   </Session>

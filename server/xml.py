@@ -1,6 +1,6 @@
 from lxml import objectify
 
-from server.io import IOStorage, IO
+from server.informationobject import IO, IOPool
 from server.lib104 import IEC608705TypeID, Server104Config
 
 
@@ -36,42 +36,37 @@ class ServerConfigFromXml():
             pass
 
 
-class IOStorageFromXml():
-
+class IOPoolFromXml():
     def __init__(self, file):
         self._root = objectify.parse(file).getroot()
         assert isinstance(self._root, objectify.ObjectifiedElement)
 
-        self.data = IOStorage()
+        self.pool = IOPool()
+
         try:
-            tags_list = self._root.Session.Connection.Slave
-            self.data = self._get_tags(tags_list)
+            self.pool = self._parse_elements(
+                self._root.Session.Connection.Slave)
 
         except:
             pass
 
-    def _get_tags(self, list):
-        if list.tag is None:
-            return None
-
-        tags = IOStorage()
-        for io in list.iterchildren():
-            new_io = IOStorageFromXml._parse_element(io)
+    def _parse_elements(self, slave_node):
+        io_pool = IOPool()
+        for io in slave_node.iterchildren():
+            new_io = IOPoolFromXml._parse_io(io)
             if new_io.validate():
-                tags.insert(new_io)
+                io_pool.add(new_io)
             else:
                 self.error = XmlError(
-                    'Invalid tag #{}'.format(tags.count + 1))
-                return IOStorage()
+                    'Invalid tag #{}'.format(io_pool.count + 1))
+                return IOPool()
 
-        return tags
+        return io_pool
 
     @staticmethod
-    def _parse_element(el):
-        format = el.get("Format")
-        type = IEC608705TypeID.from_string(el.tag, format)
-        name = el.get("Name")
-        group = el.get("Groupe")
-        ioa = el.get("ObjectAddr")
-
-        return IO(type, format, name, group, ioa)
+    def _parse_io(line):
+        ioa = line.get("ObjectAddr")
+        type = IEC608705TypeID.from_node(line)
+        name = line.get("Name")
+        group = line.get("Groupe")
+        return IO(int(ioa), int(type), str(name), int(group))

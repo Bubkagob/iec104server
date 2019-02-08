@@ -1,7 +1,8 @@
-from server.io import IO, IOStorage
-from server.xml import IOStorageFromXml, ServerConfigFromXml
+from server.informationobject import IO
+from server.xml import ServerConfigFromXml, IOPoolFromXml
 
-from server.lib104 import Server104, QualityDescriptor
+from server.lib104 import QualityDescriptor
+from server.slave import Server104
 
 from pv.client.base import Client, ClientEvents, ClientConfig
 from pv.client.timer import Timers
@@ -13,38 +14,35 @@ from pv.connector.twisted import TwistedTransport
 class AppConfig:
     def __init__(self, reactor, file='config.xml'):
         self.file = file
-        self.log = None
+        self.logger = None
         self.reactor = reactor
 
 
 class App:
     def __init__(self, config):
+        self.logger = config.logger
         self._client = None
         self._server = None
         self._tags = None
         self._config = config
         self._reactor = config.reactor
-        self._storage = IOStorageFromXml(self._config.file).data
+        #self._storage = IOStorageFromXml(self._config.file).data
+        self._pool = IOPoolFromXml(self._config.file).pool
 
     def start(self):
-        print("Hello!")
+        self.logger.debug("start app")
         # reader = XmlReader(self._config.file)
         # if not reader.validate():
         #     self.error('Invalid config file. {0}'.format(reader.error.message))
-        self._tags = [k for (k, _) in self._storage.items()]
+        self._tags = self._pool.subscribe_list()
+        # self._tags = [k for (k, _) in self._storage.items()]
         self._start_server()
         self._start_client()
 
-    def _start_server(self):
-        srv_cfg = ServerConfigFromXml(self._config.file).data
-        self._server = Server104(srv_cfg)
-        self._server.tags = self._storage
-        self._server.start()
-
     def _start_client(self):
         cfg = ClientConfig()
-        cfg.host = "127.0.0.1"
-        cfg.port = 8091
+        cfg.host: str = "127.0.0.1"
+        cfg.port: int = 8091
         cfg.events = ClientEvents()
         cfg.transport = Transport(
             TwistedTransport,
@@ -66,31 +64,34 @@ class App:
         self._server.vclient = self._client
         self._client.start()
 
+    def _start_server(self):
+        srv_cfg = ServerConfigFromXml(self._config.file).data
+        self._server = Server104(srv_cfg)
+        self._server.pool = self._pool
+        self._server.start()
+
     def _handshake(self):
         """ Коннект установлен и ответ на приветсвие был получен """
         self._client.find(self._tags)
 
     def _update(self, res):
-        print("Update")
         name = res.result['tag']
         value = res.result['v']
         time = res.result['t']
         qual = res.result['q']
+        self.logger.debug(
+            "update tag {0}, value {1}, time {2}, quality {3}".format(
+                name, value, time, qual))
 
         try:
-            io = self._storage.get(name)
+            io = self._pool.get_io_by_name(name)
             io.value = (0 if value is None else value)
             io.quality = qual
             io.timestamp = time
-            self._storage.update(io)
-        except Exception as e:
-            print("Trouble with update storage", e)
-
-        try:
-            io = self._storage.get(name)
+            self._pool.update(io)
             self._server.send(io)
         except Exception as e:
-            print("Trouble with write to clients", e)
+            self.logger.debug("Trouble with update storage {0}".format(e))
 
     def _init_stage1(self, res):
         """ Поиск тэгов завершен """
@@ -104,7 +105,7 @@ class App:
         if not task.success:
             self.error('Subscribe error. Please check tag existence')
         else:
-            print('Subscribe done')
+            self.logger.debug("Subscribe done")
 
     def stop(self):
         """ Останов """
@@ -120,5 +121,5 @@ class App:
     def error(self, message):
         """ Отработка ошибки"""
         if message:
-            print('ERROR: {}'.format(message))
+            self.logger.debug("ERROR: {}".format(message))
         self.stop()

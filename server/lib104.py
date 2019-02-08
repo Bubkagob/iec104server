@@ -1,8 +1,4 @@
-import signal
-import sys
-import time
 from enum import Enum
-from itertools import groupby
 from ctypes import util, CFUNCTYPE, POINTER, CDLL, cdll
 from ctypes import Structure
 from ctypes import c_float, c_int, c_void_p, c_char_p, c_bool, c_uint8
@@ -128,6 +124,7 @@ class CS101CauseOfTransmission(Enum):
 
 # IEC60870_5_TypeID
 class IEC608705TypeID(Enum):
+    NONE = 0
     M_SP_NA_1 = 1
     M_SP_TA_1 = 2
     M_DP_NA_1 = 3
@@ -204,6 +201,18 @@ class IEC608705TypeID(Enum):
             return IEC608705TypeID.M_ME_NC_1.value
         return IEC608705TypeID.NONE.value
 
+    @staticmethod
+    def from_node(node):
+        if node.tag == "MSP" and node.get("Format") == "NA":
+            return IEC608705TypeID.M_SP_NA_1.value
+        if node.tag == "MME" and node.get("Format") == "NC":
+            return IEC608705TypeID.M_ME_NC_1.value
+        if node.tag == "CSE" and node.get("Format") == "NA":
+            return IEC608705TypeID.C_SE_NA_1.value
+        if node.tag == "CSE" and node.get("Format") == "NC":
+            return IEC608705TypeID.C_SE_NC_1.value
+        return IEC608705TypeID.NONE.value
+
 
 # CS104_ServerMode
 class CS104ServerMode(Enum):
@@ -212,13 +221,9 @@ class CS104ServerMode(Enum):
     CS104_MODE_MULTIPLE_REDUNDANCY_GROUPS = 2
 
 
-# CS104_PeerConnectionEvent
-class CS104PeerConnectionEvent(Enum):
-    CS104_CON_EVENT_CONNECTION_OPENED = 0
-    CS104_CON_EVENT_CONNECTION_CLOSED = 1
-    CS104_CON_EVENT_ACTIVATED = 2
-    CS104_CON_EVENT_DEACTIVATED = 3
-
+# MeasuredValueShort_getQuality
+iec60870.MeasuredValueShort_getQuality.argtypes = [c_void_p]
+iec60870.MeasuredValueShort_getQuality.restype = c_int
 
 # SetpointCommandShort_getValue
 iec60870.SetpointCommandShort_getValue.argtypes = [c_void_p]
@@ -401,273 +406,3 @@ event_handler_proto = CFUNCTYPE(
     POINTER(c_void_p),
     c_uint8
 )
-
-
-def asdu_handler(parameter, connection, asdu):
-    print("ASDU HANDLER!")
-    if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SC_NA_1.value:
-        print("received single command C_SC_NA_1")
-        if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
-            print("received CS101_COT_ACTIVATION")
-
-    return True
-
-
-def event_handler(parameter, connection, event):
-    if event == CS104PeerConnectionEvent.CS104_CON_EVENT_CONNECTION_OPENED.value:
-        print("Connection opened")
-    elif event == CS104PeerConnectionEvent.CS104_CON_EVENT_CONNECTION_CLOSED.value:
-        print("Connection closed")
-    elif event == CS104PeerConnectionEvent.CS104_CON_EVENT_ACTIVATED.value:
-        print("Connection activated")
-    elif event == CS104PeerConnectionEvent.CS104_CON_EVENT_DEACTIVATED.value:
-        print("Connection deactivated")
-
-
-def connection_req_handler(parameter, ip):
-    # print("Parameter ", parameter)
-    print("Accepted connection from ", ip.decode())
-    return True
-
-
-def interrogation_handler_old(parameter, connection, asdu, qoi):
-    if qoi is int(20):
-        print("Station Interrogation")
-        al_parameters = iec60870.IMasterConnection_getApplicationLayerParameters(connection)
-        iec60870.IMasterConnection_sendACT_CON(connection, asdu, False)
-
-        new_asdu = iec60870.CS101_ASDU_create(
-            al_parameters,
-            False,
-            CS101CauseOfTransmission.CS101_COT_INTERROGATED_BY_STATION.value,
-            0,
-            1,
-            False,
-            False
-        )
-
-        io = iec60870.SinglePointInformation_create(
-            None,
-            101,
-            True,
-            QualityDescriptor.IEC60870_QUALITY_GOOD.value
-        )
-        iec60870.CS101_ASDU_addInformationObject(new_asdu, io)
-        print("VALUE", iec60870.SinglePointInformation_getValue(io))
-        print("ADDR", iec60870.InformationObject_getObjectAddress(io))
-        io = iec60870.SinglePointInformation_create(
-            None,
-            102,
-            False,
-            QualityDescriptor.IEC60870_QUALITY_GOOD.value
-        )
-        iec60870.CS101_ASDU_addInformationObject(new_asdu, io)
-        print("VALUE2", iec60870.SinglePointInformation_getValue(io))
-        print("ADDR2", iec60870.InformationObject_getObjectAddress(io))
-        io = iec60870.SinglePointInformation_create(
-            None,
-            103,
-            True,
-            QualityDescriptor.IEC60870_QUALITY_GOOD.value
-        )
-        iec60870.CS101_ASDU_addInformationObject(new_asdu, io)
-        print("VALUE3", iec60870.SinglePointInformation_getValue(io))
-        print("ADDR3", iec60870.InformationObject_getObjectAddress(io))
-        # iec60870.InformationObject_destroy(io)
-
-        # Send that shit
-        iec60870.IMasterConnection_sendASDU(connection, new_asdu)
-        # iec60870.CS101_ASDU_destroy(new_asdu)
-    return True
-
-
-def interrogation_handler(parameter, connection, asdu, qoi):
-    if qoi is int(20):
-        print("Station Interrogation")
-
-    return True
-
-
-def main():
-    slave = iec60870.CS104_Slave_create(100, 100)
-    iec60870.CS104_Slave_setLocalAddress(slave, b"0.0.0.0")
-    iec60870.CS104_Slave_setServerMode(
-        slave, CS104ServerMode.CS104_MODE_MULTIPLE_REDUNDANCY_GROUPS.value)
-    connection_parameters = iec60870.CS104_Slave_getAppLayerParameters(slave)
-
-    # set interrogation handler
-    inter_handler = interrogation_handler_proto(interrogation_handler)
-    iec60870.CS104_Slave_setInterrogationHandler(slave, inter_handler, c_int())
-
-    # set asdu handler
-    asdu_handler_wrapped = asdu_handler_proto(asdu_handler)
-    iec60870.CS104_Slave_setASDUHandler(slave, asdu_handler_wrapped, c_int())
-
-    # set connection request handler
-    con_req_handler = connection_request_handler_proto(connection_req_handler)
-    iec60870.CS104_Slave_setConnectionRequestHandler(slave, con_req_handler, c_int())
-
-    # set event handler
-    event_handler_wrapped = event_handler_proto(event_handler)
-    iec60870.CS104_Slave_setConnectionEventHandler(slave, event_handler_wrapped, c_int())
-
-    # start server
-    iec60870.CS104_Slave_start(slave)
-
-    while True:
-        time.sleep(1)
-
-
-class Server104():
-
-    def __init__(self, config):
-        print("Init Server 104")
-        self.tags = None
-        self.vclient = None
-        self.slave = iec60870.CS104_Slave_create(100, 100)
-        iec60870.CS104_Slave_setLocalAddress(self.slave, b"0.0.0.0")
-        iec60870.CS104_Slave_setServerMode(
-            self.slave, CS104ServerMode.CS104_MODE_CONNECTION_IS_REDUNDANCY_GROUP.value)
-        self.al_parameters = iec60870.CS104_Slave_getAppLayerParameters(self.slave)
-        self.apci_parameters = iec60870.CS104_Slave_getConnectionParameters(self.slave)
-        self.apci_parameters[0].k = config.k
-        self.apci_parameters[0].w = config.w
-        self.apci_parameters[0].t0 = config.t0
-        self.apci_parameters[0].t1 = config.t1
-        self.apci_parameters[0].t2 = config.t2
-        self.apci_parameters[0].t3 = config.t3
-        self.apci_parameters = iec60870.CS104_Slave_getConnectionParameters(self.slave)
-        print("HERE2", self.apci_parameters[0].k)
-        print("HERE2", self.apci_parameters[0].w)
-        print("HERE2", self.apci_parameters[0].t0)
-        print("HERE2", self.apci_parameters[0].t1)
-        print("HERE2", self.apci_parameters[0].t2)
-        print("HERE2", self.apci_parameters[0].t3)
-
-        # set asdu handler
-        self.asdu_hand = asdu_handler_proto(self.asdu_handler)
-        iec60870.CS104_Slave_setASDUHandler(self.slave, self.asdu_hand, c_int())
-
-        # set interrogation handler
-        self.con_req_handler = connection_request_handler_proto(connection_req_handler)
-        iec60870.CS104_Slave_setConnectionRequestHandler(self.slave, self.con_req_handler, c_int())
-
-        # set interrogation handler
-        self.inter_handler = interrogation_handler_proto(self.interrogation_handler)
-        iec60870.CS104_Slave_setInterrogationHandler(self.slave, self.inter_handler, c_int())
-
-    def _create_asdu(self,
-                     is_sequence=False,
-                     cot=CS101CauseOfTransmission.CS101_COT_PERIODIC.value):
-        return iec60870.CS101_ASDU_create(self.al_parameters, is_sequence,
-                                          cot, 0, 1, False, False)
-
-    def _get_iec_iobject(self, io):
-        if io.type is IEC608705TypeID.M_SP_NA_1.value:
-            return iec60870.SinglePointInformation_create(
-                None, int(io.ioa), bool(io.value),
-                QualityDescriptor(io.quality).value)
-        if io.type is IEC608705TypeID.M_ME_NC_1.value:
-            return iec60870.MeasuredValueScaled_create(
-                None, int(io.ioa), int(io.value),
-                QualityDescriptor(io.quality).value)
-
-    def start(self):
-        print("Start Server 104")
-        iec60870.CS104_Slave_start(self.slave)
-
-    def stop(self):
-        print("Stop Server 104")
-        iec60870.CS104_Slave_stop(self.slave)
-
-    def asdu_handler(self, parameter, connection, asdu):
-        # print("asdu handler")
-        asdu_count = iec60870.CS101_ASDU_getNumberOfElements(asdu)
-        # print("Number of elements = ", asdu_count)
-        if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
-            print("received CS101_COT_ACTIVATION")
-            iec_io = iec60870.CS101_ASDU_getElement(asdu, 0)
-            io_address = iec60870.InformationObject_getObjectAddress(iec_io)
-            io_type = iec60870.InformationObject_getType(iec_io)
-            if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NA_1.value:
-                print("received set point normalized(int) value C_SE_NA_1")
-                value = iec60870.SetpointCommandNormalized_getValue(iec_io)
-                print("Value SP =", value)
-                self.vclient.set("test.f3.r10", int(value), 0)
-            if iec60870.CS101_ASDU_getTypeID(asdu) == IEC608705TypeID.C_SE_NC_1.value:
-                print("received set point float value C_SE_NC_1")
-                value = iec60870.SetpointCommandShort_getValue(iec_io)
-                print("Value SP =", value)
-
-            iec60870.CS101_ASDU_setCOT(
-                asdu, CS101CauseOfTransmission.CS101_COT_ACTIVATION_CON.value)
-            iec60870.InformationObject_destroy(iec_io)
-            iec60870.IMasterConnection_sendASDU(connection, asdu)
-            return True
-        return False
-
-    def interrogation_handler(self, parameter, connection, asdu, qoi):
-        print("ASDU", iec60870.CS101_ASDU_getCOT(asdu))
-        if qoi is int(20):
-            print("Station Interrogation internal")
-            for key, group in groupby(self.tags.values(), key=lambda x: x.type):
-                print(key, group)
-                new_asdu = self._create_asdu(
-                    is_sequence=True,
-                    cot=CS101CauseOfTransmission.CS101_COT_INTERROGATED_BY_STATION.value)
-                for io in group:
-                    print("IO--->", io.type, io.name, io.value, io.quality)
-                    iec_io = self._get_iec_iobject(io)
-                    iec60870.CS101_ASDU_addInformationObject(new_asdu, iec_io)
-                    iec60870.InformationObject_destroy(iec_io)
-                iec60870.CS104_Slave_enqueueASDU(self.slave, new_asdu)
-                iec60870.CS101_ASDU_destroy(new_asdu)
-
-        return True
-
-    def send(self, io):
-        new_asdu = self._create_asdu()
-        iec_io = self._get_iec_iobject(io)
-        iec60870.CS101_ASDU_addInformationObject(new_asdu, iec_io)
-        print("ADDR-", iec60870.InformationObject_getObjectAddress(iec_io))
-        iec60870.InformationObject_destroy(iec_io)
-        iec60870.CS104_Slave_enqueueASDU(self.slave, new_asdu)
-        iec60870.CS101_ASDU_destroy(new_asdu)
-
-    def write(self, io_object):
-        print(io_object)
-        print("IOA Type To Write ---", io_object.type)
-        print("Write value to Client")
-        new_asdu = iec60870.CS101_ASDU_create(
-            self.al_parameters,
-            False,
-            CS101CauseOfTransmission.CS101_COT_PERIODIC.value,
-            0,
-            1,
-            False,
-            False
-        )
-
-        if io_object.type == "MME":
-
-            io = iec60870.MeasuredValueScaled_create(
-                None, int(io_object.ioa), int(value),
-                QualityDescriptor(quality).value)
-
-        elif io_object.type == "MSP":
-
-            io = iec60870.SinglePointInformation_create(
-                None, int(io_object.ioa), bool(value),
-                QualityDescriptor(quality).value
-            )
-
-        # iec60870.CS101_ASDU_addInformationObject(new_asdu, io)
-        # print("VALUE-", iec60870.SinglePointInformation_getValue(io))
-        # print("ADDR-", iec60870.InformationObject_getObjectAddress(io))
-        # iec60870.InformationObject_destroy(io)
-        iec60870.CS104_Slave_enqueueASDU(self.slave, new_asdu)
-        iec60870.CS101_ASDU_destroy(new_asdu)
-
-
-if __name__ == '__main__':
-    main()
