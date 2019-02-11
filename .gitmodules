@@ -1,3 +1,0 @@
-[submodule "deps/peavy-client"]
-	path = deps/peavy-client
-	url = git@gitlab.com:peavy/peavy-client.git
