@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="iec104 server",
+    name="iec104",
     version="0.0.1",
     author="Ivan Alexandrov",
     author_email="i1729van@gmail.com",
