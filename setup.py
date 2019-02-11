@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://gitlab.com/i1729van/py60870server",
     packages=setuptools.find_packages(),
-    dependency_links=['git@gitlab.com:peavy/peavy-client.git']
+    dependency_links=['git@gitlab.com:peavy/peavy-client.git'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
