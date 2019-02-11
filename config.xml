@@ -1,25 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-
-  <settings>
-    <client>
-      <name>super-client-4000</name>
-      <host>127.0.0.1</host>
-      <port>8091</port>
-      <type>twisted</type>
-      <timeouts>
-        <echo>30</echo>
-        <operation>5</operation>
-        <reconnect>30</reconnect>
-      </timeouts>
-    </client>
-</settings>
-
-<Vclient name="super-client-4000">
+<Core name="super-client-4000">
     <Connection IpAddr="127.0.0.1" TcpPort="8091">
         <Timeouts echo="30" operation="5" reconnect="30"></Timeouts>
     </Connection>
-</Vclient>
+</Core>
   <Session T0="10" T1="15" T2="10" T3="20" W="8" K="12" TransmCauseSize="2">
     <Connection IpAddr="0.0.0.0" TcpPort="2404">
       <Slave StationAddr="1">

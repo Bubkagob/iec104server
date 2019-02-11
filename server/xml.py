@@ -3,6 +3,8 @@ from lxml import objectify
 from server.informationobject import IO, IOPool
 from server.lib104 import IEC608705TypeID, Server104Config
 
+from pv.client.base import ClientConfig, ClientEvents
+
 
 class XmlError:
     """ Класс для хранения информации об ошибке """
@@ -13,6 +15,28 @@ class XmlError:
     def ok(self):
         """ Нет ошибки"""
         return self.message is None
+
+
+class ClientConfigFromXml():
+    def __init__(self, file):
+        self._root = objectify.parse(file).getroot()
+        assert isinstance(self._root, objectify.ObjectifiedElement)
+        core = self._root.Core
+        connection = self._root.Core.Connection
+        timeouts = self._root.Core.Connection.Timeouts
+        self.data = ClientConfig()
+        try:
+            self.data.name: str = str(connection.get("IpAddr"))
+            self.data.host: str = str(connection.get("IpAddr"))
+            self.data.port: int = int(connection.get("TcpPort"))
+            self.data.operation_timeout = int(timeouts.get("operation"))
+            self.data.reconnect_timeout = int(timeouts.get("reconnect"))
+            self.data.echo_timeout = int(timeouts.get("echo"))
+            self.data.timers = None
+            self.data.transport = None
+            self.data.events = ClientEvents()
+        except:
+            pass
 
 
 class ServerConfigFromXml():

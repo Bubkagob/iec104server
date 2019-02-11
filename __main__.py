@@ -1,8 +1,10 @@
-import signal
-import argparse
-import logging
+
 from twisted.internet import reactor
 from server.app import AppConfig, App
+import logging
+import argparse
+import signal
+
 
 logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d:%H:%M:%S',

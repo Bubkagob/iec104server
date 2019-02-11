@@ -1,14 +1,12 @@
-from server.informationobject import IO
-from server.xml import ServerConfigFromXml, IOPoolFromXml
-
-from server.lib104 import QualityDescriptor
-from server.slave import Server104
-
-from pv.client.base import Client, ClientEvents, ClientConfig
-from pv.client.timer import Timers
-from pv.client.twisted import TwistedTimerFactory
-from pv.connector.transport import Transport
 from pv.connector.twisted import TwistedTransport
+from pv.connector.transport import Transport
+from pv.client.twisted import TwistedTimerFactory
+from pv.client.timer import Timers
+from pv.client.base import Client, ClientEvents, ClientConfig
+from server.slave import Server104
+from server.lib104 import QualityDescriptor
+from server.xml import ServerConfigFromXml, IOPoolFromXml, ClientConfigFromXml
+from server.informationobject import IO
 
 
 class AppConfig:
@@ -40,20 +38,14 @@ class App:
         self._start_client()
 
     def _start_client(self):
-        cfg = ClientConfig()
-        cfg.host: str = "127.0.0.1"
-        cfg.port: int = 8091
-        cfg.events = ClientEvents()
+        cfg = ClientConfigFromXml(self._config.file).data
         cfg.transport = Transport(
             TwistedTransport,
             self._reactor,
             cfg.host,
             cfg.port,
             cfg.reconnect_timeout)
-
         cfg.timers = Timers(TwistedTimerFactory, self._reactor)
-        cfg.name = "PeavyTextClient"
-
         cfg.events.handshake = self._handshake
         cfg.events.find = lambda task: self._init_stage1(
             task)
@@ -71,7 +63,6 @@ class App:
         self._server.start()
 
     def _handshake(self):
-        """ Коннект установлен и ответ на приветсвие был получен """
         self._client.find(self._tags)
 
     def _update(self, res):
@@ -94,14 +85,12 @@ class App:
             self.logger.debug("Trouble with update storage {0}".format(e))
 
     def _init_stage1(self, res):
-        """ Поиск тэгов завершен """
         if not res.success:
             self.error('Subscribe error: unconfirmed tags \n{0}'.format(res.result['rejected']))
         else:
             self._client.subscribe(self._tags)
 
     def _init_stage2(self, task):
-        """ Подписка на тэги завершена """
         if not task.success:
             self.error('Subscribe error. Please check tag existence')
         else:
@@ -119,7 +108,6 @@ class App:
             pass
 
     def error(self, message):
-        """ Отработка ошибки"""
         if message:
             self.logger.debug("ERROR: {}".format(message))
         self.stop()

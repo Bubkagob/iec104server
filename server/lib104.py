@@ -194,14 +194,6 @@ class IEC608705TypeID(Enum):
     F_SC_NB_1 = 127
 
     @staticmethod
-    def from_string(type, format="NA"):
-        if type == "MSP" and format == "NA":
-            return IEC608705TypeID.M_SP_NA_1.value
-        if type == "MME" and format == "NC":
-            return IEC608705TypeID.M_ME_NC_1.value
-        return IEC608705TypeID.NONE.value
-
-    @staticmethod
     def from_node(node):
         if node.tag == "MSP" and node.get("Format") == "NA":
             return IEC608705TypeID.M_SP_NA_1.value

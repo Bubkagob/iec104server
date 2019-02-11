@@ -1,9 +1,6 @@
-import signal
 import logging
-import sys
-import time
 from itertools import groupby
-from ctypes import c_float, c_int, c_void_p, c_char_p, c_bool, c_uint8
+from ctypes import c_int
 
 from server.lib104 import iec60870, CS101CauseOfTransmission, IEC608705TypeID
 from server.lib104 import QualityDescriptor, CS104ServerMode
@@ -20,7 +17,6 @@ class Server104():
         self.vclient = None
         self.log = logging.getLogger(__name__)
         self.log.debug("Init Server 104")
-        # logger.setLevel(logging.DEBUG)
         self.slave = iec60870.CS104_Slave_create(100, 100)
         iec60870.CS104_Slave_setLocalAddress(self.slave, b"0.0.0.0")
         iec60870.CS104_Slave_setServerMode(
@@ -77,9 +73,7 @@ class Server104():
         iec60870.CS104_Slave_stop(self.slave)
 
     def asdu_handler(self, parameter, connection, asdu):
-        # print("asdu handler")
         asdu_count = iec60870.CS101_ASDU_getNumberOfElements(asdu)
-        # print("Number of elements = ", asdu_count)
         if iec60870.CS101_ASDU_getCOT(asdu) == CS101CauseOfTransmission.CS101_COT_ACTIVATION.value:
             self.log.debug("received CS101_COT_ACTIVATION")
             command_io = iec60870.CS101_ASDU_getElement(asdu, 0)
