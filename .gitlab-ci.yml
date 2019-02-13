@@ -1,29 +1,12 @@
 stages:
-  - prepare
-  - systest
-
-variables:
-  DOCKER_COMPOSE_RUNNER: docker
+  - build
 
 #===============================================================================
-# PREPARE
-#===============================================================================
-
-
-prepare-docker-runner:
-  stage: prepare
-  image: docker:stable
-  script:
-    - docker build -t ${DOCKER_COMPOSE_RUNNER} dockers/${DOCKER_COMPOSE_RUNNER}
-  tags:
-    - docker
-
-#===============================================================================
-# SYS TEST
+# Build lib60870
 #===============================================================================
 test-systest:
-  stage: systest
-  image: ${DOCKER_COMPOSE_RUNNER}
+  image: debian:9
+  stage: build
   script:
     - |
       n=6; row="";
