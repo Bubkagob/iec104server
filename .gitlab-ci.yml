@@ -16,6 +16,7 @@ test-systest:
     - ls -a
     - pip3 install twisted
     - python3 __main__.py
-    - | n=30; row=""; for(( i=0; i<n; i++ )); do row="$row "; done; row="${row%?}*"; for(( i=0; i<n; i++ )); do echo "$row"; row="${row#?}**"; done
+    - |
+        n=30; row=""; for(( i=0; i<n; i++ )); do row="$row "; done; row="${row%?}*"; for(( i=0; i<n; i++ )); do echo "$row"; row="${row#?}**"; done
   tags:
     - docker
