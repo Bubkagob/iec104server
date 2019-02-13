@@ -1,0 +1,32 @@
+stages:
+  - prepare
+  - systest
+
+variables:
+  DOCKER_COMPOSE_RUNNER: docker
+
+#===============================================================================
+# PREPARE
+#===============================================================================
+
+
+prepare-docker-runner:
+  stage: prepare
+  image: docker:stable
+  script:
+    - docker build -t ${DOCKER_COMPOSE_RUNNER} dockers/${DOCKER_COMPOSE_RUNNER}
+  tags:
+    - docker
+
+#===============================================================================
+# SYS TEST
+#===============================================================================
+test-systest:
+  stage: systest
+  image: ${DOCKER_COMPOSE_RUNNER}
+  script:
+    - |
+      n=6; row="";
+      for(( i=0; i<n; i++ )); do row="$row "; done; row="${row%?}*"; for(( i=0; i<n; i++ )); do echo "$row"; row="${row#?}**"; done
+  tags:
+    - docker

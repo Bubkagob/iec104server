@@ -2,12 +2,12 @@ import logging
 from itertools import groupby
 from ctypes import c_int
 
-from server.lib104 import iec60870, CS101CauseOfTransmission, IEC608705TypeID
-from server.lib104 import QualityDescriptor, CS104ServerMode
-from server.lib104 import event_handler_proto, CS104PeerConnectionEvent
-from server.lib104 import CS104_APCIParameters, CS101_AppLayerParameters
-from server.lib104 import asdu_handler_proto, interrogation_handler_proto
-from server.lib104 import connection_request_handler_proto
+from iec.lib104 import iec60870, CS101CauseOfTransmission, IEC608705TypeID
+from iec.lib104 import QualityDescriptor, CS104ServerMode
+from iec.lib104 import event_handler_proto, CS104PeerConnectionEvent
+from iec.lib104 import CS104_APCIParameters, CS101_AppLayerParameters
+from iec.lib104 import asdu_handler_proto, interrogation_handler_proto
+from iec.lib104 import connection_request_handler_proto
 
 
 class Server104():

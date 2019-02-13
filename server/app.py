@@ -4,7 +4,7 @@ from pv.client.twisted import TwistedTimerFactory
 from pv.client.timer import Timers
 from pv.client.base import Client, ClientEvents, ClientConfig
 from server.slave import Server104
-from server.lib104 import QualityDescriptor
+from iec.lib104 import QualityDescriptor
 from server.xml import ServerConfigFromXml, IOPoolFromXml, ClientConfigFromXml
 from server.informationobject import IO
 

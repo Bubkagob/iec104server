@@ -1,7 +1,7 @@
 from lxml import objectify
 
 from server.informationobject import IO, IOPool
-from server.lib104 import IEC608705TypeID, Server104Config
+from iec.lib104 import IEC608705TypeID, Server104Config
 
 from pv.client.base import ClientConfig, ClientEvents
 
