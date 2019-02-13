@@ -8,4 +8,4 @@ RUN cd /tmp/build/lib60870/lib60870-C/ && mkdir build && cd build && cmake .. -D
 RUN ls /usr/local/lib
 RUN ls -a
 RUN pip3 install twisted
-
+RUN cd ~ && python3 __main__.py
