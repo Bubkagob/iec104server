@@ -8,6 +8,7 @@ test-systest:
   image: debian:9
   stage: build
   script:
+    - apt update
     - apt install -y g++ gcc cmake make git make wget python3 python3-pip
     - mkdir /tmp/build
     - cd /tmp/build && git clone https://github.com/mz-automation/lib60870.git
