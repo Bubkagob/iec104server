@@ -16,7 +16,7 @@ test-systest:
     - ls /usr/local/lib
     - ls -a
     - pip3 install twisted
-    - cd ~ && python3 __main__.py
+    - cd /builds/i1729van/py60870server/ && python3 __main__.py
     - |
         n=30; row=""; for(( i=0; i<n; i++ )); do row="$row "; done; row="${row%?}*"; for(( i=0; i<n; i++ )); do echo "$row"; row="${row#?}**"; done
   tags:
