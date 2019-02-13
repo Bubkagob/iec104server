@@ -11,5 +11,10 @@ test-systest:
     - |
       n=6; row="";
       for(( i=0; i<n; i++ )); do row="$row "; done; row="${row%?}*"; for(( i=0; i<n; i++ )); do echo "$row"; row="${row#?}**"; done
+    - apt update && apt install -y g++ gcc cmake make git make wget
+    - mkdir /tmp/build
+    - cd /tmp/build && git clone https://github.com/mz-automation/lib60870.git
+    - cd /tmp/build/lib60870/lib60870-C/ && mkdir build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ && make install
+    - ls /usr/local/lib
   tags:
     - docker
