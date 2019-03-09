@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doc>
+	<Tag name="test">
+		<Tag name="bit.b1" type="bool"/>
+		<Tag name="bit.b2" type="bool"/>
+		<Tag name="bit.b3" type="bool"/>
+		<Tag name="bit.b4" type="bool"/>
+		<Tag name="bit.b5" type="bool"/>
+		<Tag name="f3.r1" type="float"/>
+		<Tag name="f3.r2" type="float"/>
+		<Tag name="f3.r3" type="float"/>
+		<Tag name="f3.r4" type="float"/>
+		<Tag name="f3.r5" type="float"/>
+		<Tag name="f3.r6" type="float"/>
+		<Tag name="f3.r7" type="float"/>
+		<Tag name="f3.r8" type="float"/>
+		<Tag name="f3.r9" type="float"/>
+		<Tag name="f3.r10" type="float"/>
+		<Tag name="f3.r11" type="float"/>
+		<Tag name="f3.r12" type="float"/>
+		<Tag name="f3.r13" type="float"/>
+		<Tag name="f3.r14" type="float"/>
+		<Tag name="f3.r15" type="float"/>
+		<Tag name="f3.r16" type="float"/>
+		<Tag name="f3.r17" type="float"/>
+		<Tag name="f3.r18" type="float"/>
+		<Tag name="f3.r19" type="float"/>
+		<Tag name="f3.r20" type="float"/>
+	</Tag>
+</doc>

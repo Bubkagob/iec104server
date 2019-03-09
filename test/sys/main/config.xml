@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<Core name="super-client-4000">
+    <Connection IpAddr="volcano" TcpPort="8091">
+        <Timeouts echo="30" operation="5" reconnect="30"></Timeouts>
+    </Connection>
+</Core>
+  <Session T0="10" T1="15" T2="10" T3="20" W="8" K="12" TransmCauseSize="2">
+    <Connection IpAddr="0.0.0.0" TcpPort="2404">
+      <Slave StationAddr="1">
+          <MSP Name="test.bit.b1"  Groupe="1"  ObjectAddr="150"    Format="NA"></MSP>
+          <MSP Name="test.bit.b2"  Groupe="1"  ObjectAddr="151"    Format="NA"></MSP>
+          <MSP Name="test.bit.b3"  Groupe="1"  ObjectAddr="152"    Format="NA"></MSP>
+          <MSP Name="test.bit.b4"  Groupe="1"  ObjectAddr="153"    Format="NA"></MSP>
+          <MSP Name="test.bit.b5"  Groupe="1"  ObjectAddr="154"    Format="NA"></MSP>
+          <MME Name="test.f3.r1"  Groupe="2"  ObjectAddr="111"    Format="NC"></MME>
+          <MME Name="test.f3.r2"  Groupe="2"  ObjectAddr="112"    Format="NC"></MME>
+          <MME Name="test.f3.r3"  Groupe="2"  ObjectAddr="113"    Format="NC"></MME>
+          <MME Name="test.f3.r4"  Groupe="2"  ObjectAddr="114"    Format="NC"></MME>
+          <MME Name="test.f3.r5"  Groupe="2"  ObjectAddr="115"    Format="NC"></MME>
+          <MME Name="test.f3.r6"  Groupe="2"  ObjectAddr="116"    Format="NC"></MME>
+          <MME Name="test.f3.r7"  Groupe="2"  ObjectAddr="117"    Format="NC"></MME>
+          <MME Name="test.f3.r8"  Groupe="2"  ObjectAddr="118"    Format="NC"></MME>
+          <MME Name="test.f3.r9"  Groupe="2"  ObjectAddr="119"    Format="NC"></MME>
+          <MME Name="test.f3.r10"  Groupe="2"  ObjectAddr="120"    Format="NC"></MME>
+          <MME Name="test.f3.r11"  Groupe="2"  ObjectAddr="121"    Format="NC"></MME>
+          <MME Name="test.f3.r12"  Groupe="2"  ObjectAddr="122"    Format="NC"></MME>
+          <MME Name="test.f3.r13"  Groupe="2"  ObjectAddr="123"    Format="NC"></MME>
+          <MME Name="test.f3.r14"  Groupe="2"  ObjectAddr="124"    Format="NC"></MME>
+          <MME Name="test.f3.r15"  Groupe="2"  ObjectAddr="125"    Format="NC"></MME>
+          <MME Name="test.f3.r16"  Groupe="2"  ObjectAddr="126"    Format="NC"></MME>
+          <MME Name="test.f3.r17"  Groupe="2"  ObjectAddr="127"    Format="NC"></MME>
+          <MME Name="test.f3.r18"  Groupe="2"  ObjectAddr="128"    Format="NC"></MME>
+          <MME Name="test.f3.r19"  Groupe="2"  ObjectAddr="129"    Format="NC"></MME>
+          <MME Name="test.f3.r20"  Groupe="2"  ObjectAddr="130"    Format="NC"></MME>
+          <CSE Name="test.f3.r15"  Groupe="3"  ObjectAddr="200"    Format="NC" Operation="EXECUTE"></CSE>
+          <CSE Name="test.f3.r16"  Groupe="3"  ObjectAddr="201"    Format="NA" Operation="EXECUTE"></CSE>
+      </Slave>
+    </Connection>
+  </Session>
+</root>

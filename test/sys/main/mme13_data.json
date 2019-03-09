@@ -1,0 +1,22 @@
+[
+    {"name": "test.f3.r1", "ioa": 111, "value": 123.12},
+    {"name": "test.f3.r2", "ioa": 112, "value": 456.456},
+    {"name": "test.f3.r3", "ioa": 113, "value": 321.321},
+    {"name": "test.f3.r4", "ioa": 114, "value": 657.423},
+    {"name": "test.f3.r5", "ioa": 115, "value": 234.546},
+    {"name": "test.f3.r6", "ioa": 116, "value": 456.326},
+    {"name": "test.f3.r7", "ioa": 117, "value": 12.32},
+    {"name": "test.f3.r8", "ioa": 118, "value": 32.123},
+    {"name": "test.f3.r9", "ioa": 119, "value": 43.231},
+    {"name": "test.f3.r10", "ioa": 120, "value": 23.543},
+    {"name": "test.f3.r11", "ioa": 121, "value": 123.1},
+    {"name": "test.f3.r12", "ioa": 122, "value": 43.123},
+    {"name": "test.f3.r13", "ioa": 123, "value": 12.12},
+    {"name": "test.f3.r14", "ioa": 124, "value": 24.123},
+    {"name": "test.f3.r15", "ioa": 125, "value": 87.453},
+    {"name": "test.f3.r16", "ioa": 126, "value": 234.12},
+    {"name": "test.f3.r17", "ioa": 127, "value": 43.123},
+    {"name": "test.f3.r18", "ioa": 128, "value": 343.123},
+    {"name": "test.f3.r19", "ioa": 129, "value": 54.234},
+    {"name": "test.f3.r20", "ioa": 130, "value": 121.43}
+]

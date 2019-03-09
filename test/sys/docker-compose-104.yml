@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  volcano:
+    image: ${RUNNER}
+    entrypoint: ["sh", "-c", "git clone $CI_REPOSITORY_URL --branch $CI_COMMIT_REF_NAME --single-branch /project;
+                              pip3 install -q  volcano-core;
+                              cd /project/${SUITE_REL_PATH};
+                              python3 -m volcano.core"]
+
+  srv104:
+    image: ${RUNNER}
+    entrypoint: ["sh", "-c", "git clone --recurse-submodules -j8 $CI_REPOSITORY_URL --branch $CI_COMMIT_REF_NAME --single-branch /project;
+                              pip3 install -q  /project;
+                              cd /project/;
+                              ls -a;
+                              export LD_LIBRARY_PATH=/usr/local/lib;
+                              python3 -m volcano.srv104 --config ${SUITE_REL_PATH}/config.xml"]
+
+  test:
+    image: ${RUNNER}
+    entrypoint: ["sh", "-c", "python3 --version;
+                              git clone $CI_REPOSITORY_URL --branch $CI_COMMIT_REF_NAME --single-branch /project;
+                              pip3 install -q  /project;
+                              pip3 install -q  -r /project/requirements_systest.txt;
+                              export LD_LIBRARY_PATH=/usr/local/lib;
+                              cd /project/;
+                              python3 -m unittest discover ${SUITE_REL_PATH} test_*.py"]

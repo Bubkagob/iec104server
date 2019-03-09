@@ -1,0 +1,76 @@
+stages:
+  - prepare
+  - build
+  - unittest
+  - badtest
+  - systest
+  - deploy
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  RUNNER: volcano-srv104-container
+  PYTHON_RUNNER_VANILLA: volcano-iec104srv-ci-py-vanilla
+  PYTHON_RUNNER_LUX: volcano-iec104srv-ci-py-lux
+  DOCKER_COMPOSE_RUNNER: volcano-iec104srv-ci-docker
+
+
+#===============================================================================
+# PREPARE
+#===============================================================================
+prepare-python-runner:
+  stage: prepare
+  image: docker:stable
+  script:
+    - docker build -t ${RUNNER} dockers/${RUNNER}
+  tags:
+    - docker
+
+
+#===============================================================================
+# SYSTEST
+#===============================================================================
+test-systest:
+  stage: systest
+  image: ${RUNNER}
+  script:
+    - |
+      for SUITE_REL_PATH in test/sys/*/ ; do
+        echo "----------------------- SUITE  ${SUITE_REL_PATH}  -----------------------"
+        export SUITE_REL_PATH
+        docker-compose -f test/sys/docker-compose-104.yml up --exit-code-from test --abort-on-container-exit --force-recreate --remove-orphans
+      done
+  tags:
+    - docker
+
+#===============================================================================
+# UNIT TEST
+#===============================================================================
+test-unittest:
+  stage: unittest
+  image: ${RUNNER}
+  script:
+    - python3 --version
+    - pip3 install -q -r requirements_unittest.txt
+    - pip3 install -q coverage
+    - coverage run --source volcano -m unittest discover test/unit
+    - coverage report | grep TOTAL
+  coverage: '/\d+\%\s*$/'
+  tags:
+    - docker
+
+
+#===============================================================================
+# DEPLOY
+#===============================================================================
+
+deploy-pipy:
+  stage: deploy
+  image: ${PYTHON_RUNNER_LUX}
+  script:
+    - pip3 install -q --upgrade wheel setuptools twine
+    - python3 setup.py -q sdist bdist_wheel
+    - twine upload -u ${PYVOLCANO_GLOBAL_PIPY_LOGIN} -p ${PYVOLCANO_GLOBAL_PIPY_PWD} dist/*
+  only:
+    - production
+  tags:
+    - docker

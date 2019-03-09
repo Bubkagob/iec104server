@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  volcano:
+    image: ${PYTHON_RUNNER}
+    entrypoint: ["sh", "-c", "pip3 install -q --find-links=/packages volcano-core;
+                              python3 -m volcano.core"]
+    working_dir: "/suite"
+    volumes:
+      - ${PACKAGES}:/packages:ro
+      - $PWD:/suite:ro
+
+  iec104srv:
+    image: ${PYTHON_RUNNER}
+    entrypoint: ["sh", "-c", "pip3 install -q --find-links=/packages /project;
+                              python3 -m volcano.iec104srv --core_host volcano"]
+    working_dir: "/suite"
+    volumes:
+      - ${PACKAGES}:/packages:ro
+      - $PWD/../../..:/project:ro
+      - $PWD:/suite:ro
+
+  test:
+    image: ${PYTHON_RUNNER}
+    entrypoint: ["sh", "-c", "pip3 install -q --find-links=/packages /project;
+                              pip3 install -q --find-links=/packages -r /project/requirements_systest.txt;
+                              python3 -m unittest discover /suite test_*.py"]
+    volumes:
+      - ${PACKAGES}:/packages:ro
+      - $PWD/../../..:/project:ro
+      - $PWD:/suite:ro
